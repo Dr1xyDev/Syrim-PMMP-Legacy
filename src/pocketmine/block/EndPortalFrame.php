@@ -1,0 +1,100 @@
+<?php
+
+/*
+ *  ░█▀▀░█░█░█▀▄░▀█▀░█▄█
+ *  ░▀▀█░░█░░█▀▄░░█░░█░█
+ *  ░▀▀▀░░▀░░▀░▀░▀▀▀░▀░▀
+ *
+ *  Syrim - PocketMine-MP based core
+ *  Version : 1.0.5
+ *  Author  : Dr1xy dev
+ *  API     : 3.0.1 (modified)  |  Protocol : v113  |  MultiPHP : 7.3 / 7.4 / 8.0
+ *
+ *  Nota : Versiones anteriores existieron pero no fueron publicadas
+ *         debido a motivos privados del autor.
+ */
+
+namespace pocketmine\block;
+
+use pocketmine\item\Item;
+use pocketmine\math\AxisAlignedBB;
+use pocketmine\Player;
+
+class EndPortalFrame extends Solid implements SolidLight {
+
+	protected $id = self::END_PORTAL_FRAME;
+
+	/**
+	 * EndPortalFrame constructor.
+	 *
+	 * @param int $meta
+	 */
+	public function __construct($meta = 0){
+		$this->meta = $meta;
+	}
+
+	/**
+	 * @return int
+	 */
+	public function getLightLevel(){
+		return 1;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getName() : string{
+		return "End Portal Frame";
+	}
+
+	/**
+	 * @return int
+	 */
+	public function getHardness(){
+		return -1;
+	}
+
+	/**
+	 * @return int
+	 */
+	public function getResistance(){
+		return 18000000;
+	}
+
+	/**
+	 * @param Item $item
+	 *
+	 * @return bool
+	 */
+	public function isBreakable(Item $item){
+		return false;
+	}
+
+
+	public function place(Item $item, Block $block, Block $target, $face, $fx, $fy, $fz, Player $player = null){
+		$faces = [
+			0 => 3,
+			1 => 2,
+			2 => 1,
+			3 => 0,
+		];
+		$this->meta = $faces[$player->getDirection()];
+		return $this->getLevel()->setBlock($this, $this, true, true);
+	}
+
+
+	/**
+	 * @return AxisAlignedBB
+	 */
+	protected function recalculateBoundingBox(){
+
+		return new AxisAlignedBB(
+			$this->x,
+			$this->y,
+			$this->z,
+			$this->x + 1,
+			$this->y + (($this->getDamage() & 0x04) > 0 ? 1 : 0.8125),
+			$this->z + 1
+		);
+	}
+}
