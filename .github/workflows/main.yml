@@ -1,0 +1,41 @@
+name: Syrim Obfuscator
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+jobs:
+  obfuscate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout codigo
+        uses: actions/checkout@v4
+
+      - name: Instalar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Ofuscar src/
+        run: python3 syrim_obfuscator.py src/ obfuscated_src/
+
+      - name: Crear ZIP con src ofuscado
+        run: zip -r syrim-src-obfuscated.zip obfuscated_src/
+
+      - name: Subir artefacto
+        uses: actions/upload-artifact@v4
+        with:
+          name: syrim-src-obfuscated
+          path: syrim-src-obfuscated.zip
+          retention-days: 90
+
+      - name: Crear Release (solo en push a main)
+        if: github.ref == 'refs/heads/main'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: obfuscated-${{ github.run_number }}
+          name: Syrim Obfuscated Build #${{ github.run_number }}
+          files: syrim-src-obfuscated.zip
