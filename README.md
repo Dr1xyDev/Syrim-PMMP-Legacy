@@ -12,6 +12,10 @@
 
 ---
 
+## ⚙️ Binarios 7.3 7.4 y 8.0 aca:
+
+- ``https://github.com/Dr1xyDev/Linux-Bins-PM2-PM3-PM4``
+
 ## 📋 Índice
 - [Acerca de](#acerca-de)
 - [Requisitos](#requisitos)
