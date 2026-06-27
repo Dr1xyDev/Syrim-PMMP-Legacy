@@ -1,0 +1,47 @@
+name: Extract and Commit src.zip
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'src.zip'
+
+jobs:
+  extract-and-commit:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check if src.zip exists
+        id: check-zip
+        run: |
+          if [ -f "src.zip" ]; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Extract src.zip
+        if: steps.check-zip.outputs.exists == 'true'
+        run: |
+          unzip -o src.zip
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Add and commit changes
+        if: steps.check-zip.outputs.exists == 'true'
+        run: |
+          git add -A
+          if ! git diff --cached --quiet; then
+            git commit -m "Extract src.zip contents"
+            git push
+          else
+            echo "No changes to commit"
+          fi
