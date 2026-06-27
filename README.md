@@ -1,8 +1,8 @@
 <div align="center">
 
-# ░█▀▀░█░█░█▀▄░▀█▀░█▄█
-# ░▀▀█░░█░░█▀▄░░█░░█░█
-# ░▀▀▀░░▀░░▀░▀░▀▀▀░▀░▀
+░█▀▀░█░█░█▀▄░▀█▀░█▄█
+░▀▀█░░█░░█▀▄░░█░░█░█
+░▀▀▀░░▀░░▀░▀░▀▀▀░▀░▀
 
 **Núcleo personalizado para Minecraft: Bedrock Edition v1.1.5 (protocolo v113)**
 
