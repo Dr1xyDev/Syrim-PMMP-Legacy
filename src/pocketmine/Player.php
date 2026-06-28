@@ -946,37 +946,45 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
          */
         protected function switchLevel(Level $targetLevel){
                 $oldLevel = $this->level;
+
                 if(parent::switchLevel($targetLevel)){
                         if($oldLevel !== null){
-                            foreach($this->usedChunks as $index => $d){
-                                    Level::getXZ($index, $X, $Z);
-                                    $this->unloadChunk($X, $Z, $oldLevel);
-                            }
+                                foreach($this->usedChunks as $index => $d){
+                                        Level::getXZ($index, $X, $Z);
+                                        $this->unloadChunk($X, $Z, $oldLevel);
+                                }
                         }
 
                         $this->usedChunks = [];
                         $this->loadQueue = [];
+                        $this->spawnChunkLoadCount = 0;
+                        $this->nextChunkOrderRun = 0;
 
                         $this->level->sendTime($this);
 
-                        if($targetLevel->getDimension() != $oldLevel->getDimension()){
+                        if($oldLevel !== null && $targetLevel->getDimension() !== $oldLevel->getDimension()){
                                 $pk = new ChangeDimensionPacket();
                                 $pk->dimension = $targetLevel->getDimension();
                                 $pk->x = $this->x;
                                 $pk->y = $this->y;
                                 $pk->z = $this->z;
                                 $this->dataPacket($pk);
-                                //$this->shouldSendStatus = true;
+
                                 $pk1 = new PlayStatusPacket();
                                 $pk1->status = PlayStatusPacket::PLAYER_SPAWN;
                                 $this->dataPacket($pk1);
                         }
+
                         $targetLevel->getWeather()->sendWeather($this);
 
                         if($this->spawned){
                                 $this->spawnToAll();
                         }
+
+                        return true;
                 }
+
+                return false;
         }
 
         /**
@@ -1547,9 +1555,9 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
                         $this->onGround = false;
 
                         // Syrim: HACK - sincroniza el flag onGround con el cliente para que el
-			// vuelo creativo funcione. El cliente v113 asume que el jugador está
-			// onGround cuando envía MovePlayerPacket, y si el servidor no replica
-			// ese flag, el cliente aplica fricción extra al volar.
+                        // vuelo creativo funcione. El cliente v113 asume que el jugador está
+                        // onGround cuando envía MovePlayerPacket, y si el servidor no replica
+                        // ese flag, el cliente aplica fricción extra al volar.
                         //this is a yucky hack but we don't have any other options :(
                         $this->sendPosition($this, null, null, MovePlayerPacket::MODE_TELEPORT);
 
@@ -1830,8 +1838,8 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
 
             if($distanceSquared > 100){
                         // Syrim: el threshold de 10 bloques por tick es generoso - permite
-				// detectar speed hackers que mueven >10 blocks/tick. Reducirlo
-				// causaría falsos positivos con lag legítimo.
+                                // detectar speed hackers que mueven >10 blocks/tick. Reducirlo
+                                // causaría falsos positivos con lag legítimo.
                         /* !!! BEWARE YE WHO ENTER HERE !!!
                          *
                          * This is NOT an anti-cheat check. It is a safety check.
@@ -1864,7 +1872,7 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
                         $diff = $this->distanceSquared($newPos);
 
                         // Syrim: el threshold de 0.5 bloques para detectar step ilegal se
-				// mantiene conservador. Reducirlo podría causar falsos positivos.
+                                // mantiene conservador. Reducirlo podría causar falsos positivos.
                         if($this->isSurvival() and $diff > 0.0625){
                                 $ev = new PlayerIllegalMoveEvent($this, $newPos, new Vector3($this->lastX, $this->lastY, $this->lastZ));
                                 $ev->setCancelled($this->allowMovementCheats);
@@ -1953,8 +1961,8 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
 
                         $distance = sqrt((($from->x - $to->x) ** 2) + (($from->z - $to->z) ** 2));
                         // Syrim: el check de natación (que añade 0.015 exhaustion) no se
-				// implementa porque MCPE v113 no envía un flag de 'isSwimming'
-				// al servidor. Se detectaría via el bloque bajo el jugador siendo agua.
+                                // implementa porque MCPE v113 no envía un flag de 'isSwimming'
+                                // al servidor. Se detectaría via el bloque bajo el jugador siendo agua.
                         if($this->isSprinting()){
                                 $this->exhaust(0.1 * $distance, PlayerExhaustEvent::CAUSE_SPRINTING);
                         }else{
@@ -2114,8 +2122,8 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
 
                         $this->processMostRecentMovements();
                         $this->motionX = $this->motionY = $this->motionZ = 0; // Syrim: HACK - resetear la motion a 0 antes de aplicar knockback
-			// evita que la motion residual del cliente cancele el knockback.
-			// El comportamiento vanilla Bedrock hace lo mismo implícitamente.
+                        // evita que la motion residual del cliente cancele el knockback.
+                        // El comportamiento vanilla Bedrock hace lo mismo implícitamente.
                         if($this->onGround){
                                 $this->inAirTicks = 0;
                         }else{
@@ -2417,12 +2425,12 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
                 $pk->spawnZ = $spawnPosition->getFloorZ();
                 $pk->hasAchievementsDisabled = true;
                 $pk->dayCycleStopTime = -1; // Syrim: dayCycleStopTime = -1 desactiva el stop del ciclo día/noche.
-		// MCPE v113 no envía un valor real - el servidor siempre lo manda -1.
+                // MCPE v113 no envía un valor real - el servidor siempre lo manda -1.
                 $pk->eduMode = false;
                 $pk->rainLevel = 0; // Syrim: rainLevel = 0 desactiva la lluvia visible en el cliente.
-		// El servidor maneja la lluvia via LevelEventPacket; estos campos
-		// del LevelSettings son ignorados por el cliente v113 cuando llegan
-		// fuera del StartGamePacket.
+                // El servidor maneja la lluvia via LevelEventPacket; estos campos
+                // del LevelSettings son ignorados por el cliente v113 cuando llegan
+                // fuera del StartGamePacket.
                 $pk->lightningLevel = 0;
                 $pk->commandsEnabled = true;
                 $pk->levelId = "";
@@ -2746,8 +2754,8 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
                                 break;
                         case ProtocolInfo::ADVENTURE_SETTINGS_PACKET:
                                 // Syrim: las abilities del jugador se envían via AdventureSettingsPacket.
-				// No se chequean otros cambios aquí porque el paquete ya lleva flags
-				// completos (world builder, no-mine, no-pvp, etc).
+                                // No se chequean otros cambios aquí porque el paquete ya lleva flags
+                                // completos (world builder, no-mine, no-pvp, etc).
                                 $isCheater = ($this->allowFlight === false && ($packet->flags >> 9) & 0x01 === 1) || (!$this->isSpectator() && ($packet->flags >> 7) & 0x01 === 1);
                                 if(($packet->isFlying !== $this->isFlying()) or $isCheater){
                                         $this->server->getPluginManager()->callEvent($ev = new PlayerToggleFlightEvent($this, $packet->isFlying));
@@ -3413,8 +3421,8 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
                                 $this->craftingType = self::CRAFTING_SMALL;
 
                                 $this->setDataFlag(self::DATA_FLAGS, self::DATA_FLAG_ACTION, false); // Syrim: el flag DATA_FLAG_ACTION se setea false al terminar una acción
-				// porque en MCPE v113 true provoca el brazo del jugador quede
-				// 'congelado' en pose de swing. false es correcto.
+                                // porque en MCPE v113 true provoca el brazo del jugador quede
+                                // 'congelado' en pose de swing. false es correcto.
 
                                 switch($packet->event){
                                         case EntityEventPacket::EATING_ITEM:
@@ -3500,13 +3508,13 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
                                 if($packet->type === TextPacket::TYPE_CHAT){
                                         /*if ($packet->source !== $this->username) {
                                             $this->server->getNetwork()->blockAddress($this->getAddress(), 1200);// Syrim: el bloqueo temporal de 1200s por spam necesita validación en
-				// producción con jugadores reales. Mantener el timeout conservador.
+                                // producción con jugadores reales. Mantener el timeout conservador.
                                             break;
                                     }*/
                                         if(strlen($packet->message) > 350){
                                                 $this->server->getNetwork()->blockAddress($this->getAddress(), 1202); // Syrim: el segundo tier (1202s de bloqueo) es para spammers extremos
-				// (>350 chars). Se mantiene sin dar segunda oportunidad porque esos
-				// casos suelen ser bots, no jugadores legítimos.
+                                // (>350 chars). Se mantiene sin dar segunda oportunidad porque esos
+                                // casos suelen ser bots, no jugadores legítimos.
                                                 break;
                                         }
                                         $packet->message = TextFormat::clean($packet->message, $this->removeFormat);
@@ -3817,8 +3825,8 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
                                                 break;
                                         case Item::CAKE:
                                                 // Syrim: las recetas que dejan restos (cake deja bucket vacío) no se
-				// detectan automáticamente. El CraftingManager las marca
-				// individualmente en registerRecipe().
+                                // detectan automáticamente. El CraftingManager las marca
+                                // individualmente en registerRecipe().
                                                 $this->awardAchievement("bakeCake");
                                                 $this->inventory->addItem(Item::get(Item::BUCKET, 0, 3));
                                                 break;
@@ -4180,7 +4188,7 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
                 }
 
                 // Syrim: workaround para MCPE 1.0.0 (cliente sin fix de heart-beat).
-		// Se mantiene porque algunos dispositivos antiguos todavía usan 1.0.0.
+                // Se mantiene porque algunos dispositivos antiguos todavía usan 1.0.0.
                 $this->messageQueue[] = $this->server->getLanguage()->translateString($message);
                 /*
                 $pk = new TextPacket();
@@ -4672,9 +4680,9 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
         public function getOffsetPosition(Vector3 $vector3) : Vector3{
                 $result = parent::getOffsetPosition($vector3);
                 $result->y += 0.001; //Hack for MCPE falling underground for no good reason
-			// Syrim: el offset de +0.001 en Y evita que el jugador se caiga al
-			// cargar un chunk (el cliente v113 a veces reporta Y - 0.001 por
-			// error de redondeo en float). Bug conocido de Bedrock 1.x.
+                        // Syrim: el offset de +0.001 en Y evita que el jugador se caiga al
+                        // cargar un chunk (el cliente v113 a veces reporta Y - 0.001 por
+                        // error de redondeo en float). Bug conocido de Bedrock 1.x.
                 return $result;
         }
 
@@ -4764,8 +4772,8 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
                         $this->stopSleep();
 
                         // Syrim: el cliente v113 no envía MovePlayerPacket cuando el jugador
-				// está quieto, así que lastX/Y/Z puede quedar desactualizado.
-				// El workaround fuerza un sync al detectar teletransporte.
+                                // está quieto, así que lastX/Y/Z puede quedar desactualizado.
+                                // El workaround fuerza un sync al detectar teletransporte.
                         //Entity::updateMovement() normally handles this, but it's overridden with an empty function in Player
                         $this->resetLastMovements();
 
@@ -4782,8 +4790,8 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
                 $this->addWindow($this->getInventory(), 0, true);
 
                 // Syrim: la lista de window IDs cubre todos los tipos del vanilla v113.
-			// Agregar más requeriría añadir IDs al protocolo - imposible sin
-			// modificar el cliente.
+                        // Agregar más requeriría añadir IDs al protocolo - imposible sin
+                        // modificar el cliente.
         }
 
         /**
