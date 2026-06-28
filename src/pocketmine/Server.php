@@ -1660,19 +1660,16 @@ class Server{
 
         public function about(){
           $title = "
-    ░█▀▀░█░█░█▀▄░▀█▀░█▄█
-    ░▀▀█░░█░░█▀▄░░█░░█░█
-    ░▀▀▀░░▀░░▀░▀░▀▀▀░▀░▀
+      ░█▀▀░█░█░█▀▄░▀█▀░█▄█
+      ░▀▀█░░█░░█▀▄░░█░░█░█
+      ░▀▀▀░░▀░░▀░▀░▀▀▀░▀░▀
 
-§fИспользуется ядро §d{$this->getName()} §d{$this->getPocketMineVersion()}
-§fMCPE версия: " . $this->getVersion() . "
-§fИспользуется php: §e" . PHP_VERSION . "
-§fOS: §6" . PHP_OS ."
-§fАвтор: §bDr1xy dev
-§fВерсия: §b1.0.5 §7(versiones anteriores no publicadas por motivos privados)
-
-§aЯдро распространяется под открытой лицензией
-
+§7Software: §b{$this->getName()} §f{$this->getPocketMineVersion()}
+§7Version de MCPE: §b" . $this->getVersion() . "
+§7Versión de PHP : §b" . PHP_VERSION . "
+§7Sistema operativo: §e" . PHP_OS . "
+§7Autor: §bDr1xy Dev
+§7Versión: §b1.0.6
 ";
                 $this->getLogger()->info($title);
         }
