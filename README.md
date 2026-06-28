@@ -6,7 +6,7 @@
 
 **Núcleo personalizado para Minecraft: Bedrock Edition v1.1.5 (protocolo v113)**
 
-**Versión:** 1.0.5 | **Autor:** Dr1xy dev | **API:** 3.0.1 (modificada)
+**Versión:** 1.0.5.5 | **Autor:** Dr1xy dev | **API:** 3.0.1 (modificada)
 
 </div>
 
