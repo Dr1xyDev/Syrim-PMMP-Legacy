@@ -1,23 +1,16 @@
 <?php
 
 /*
+ *  ░█▀▀░█░█░█▀▄░▀█▀░█▄█
+ *  ░▀▀█░░█░░█▀▄░░█░░█░█
+ *  ░▀▀▀░░▀░░▀░▀░▀▀▀░▀░▀
  *
- *  ____            _        _   __  __ _                  __  __ ____
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
- * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
+ *  Syrim - PocketMine-MP based core
+ *  Version : 1.0.6
+ *  Author  : Dr1xy dev
+ *  API     : 3.0.1
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * @author PocketMine Team
- * @link http://www.pocketmine.net/
- *
- *
-*/
+ */
 
 namespace pocketmine\level\generator;
 
@@ -27,81 +20,149 @@ use pocketmine\level\SimpleChunkManager;
 use pocketmine\scheduler\AsyncTask;
 use pocketmine\Server;
 
-
 class PopulationTask extends AsyncTask{
 
-	/** @var bool */
-	public $state;
-	/** @var int */
-	public $levelId;
-	/** @var string */
-	public $chunk;
+        const BORDER_SIZE = 1;
 
-	/** @var string */
-	public $chunk0;
-	/** @var string */
-	public $chunk1;
-	/** @var string */
-	public $chunk2;
-	/** @var string */
-	public $chunk3;
+        public $state;
+        public $levelId;
+        public $chunk;
 
-	//center chunk
+        public $chunk0;
+        public $chunk1;
+        public $chunk2;
+        public $chunk3;
+        public $chunk5;
+        public $chunk6;
+        public $chunk7;
+        public $chunk8;
 
-	/** @var string */
-	public $chunk5;
-	/** @var string */
-	public $chunk6;
-	/** @var string */
-	public $chunk7;
-	/** @var string */
-	public $chunk8;
+        public $oldChunk0;
+        public $oldChunk1;
+        public $oldChunk2;
+        public $oldChunk3;
+        public $oldChunk5;
+        public $oldChunk6;
+        public $oldChunk7;
+        public $oldChunk8;
 
-	public function __construct(Level $level, Chunk $chunk){
-		$this->state = true;
-		$this->levelId = $level->getId();
-		$this->chunk = $chunk->fastSerialize();
-	}
+        public function __construct(Level $level, Chunk $chunk){
+                $this->state = true;
+                $this->levelId = $level->getId();
+                $this->chunk = $chunk->fastSerialize();
 
-	public function onRun(){
-		$manager = $this->getFromThreadStore("generation.level{$this->levelId}.manager");
-		$generator = $this->getFromThreadStore("generation.level{$this->levelId}.generator");
-		if(!($manager instanceof SimpleChunkManager) or !($generator instanceof Generator)){
-			$this->state = false;
-			return;
-		}
+                $chunkX = $chunk->getX();
+                $chunkZ = $chunk->getZ();
 
-		$chunk = Chunk::fastDeserialize($this->chunk);
+                for($i = 0; $i < 9; ++$i){
+                        if($i === 4){
+                                continue;
+                        }
+                        $xx = -1 + ($i % 3);
+                        $zz = -1 + (int) ($i / 3);
+                        $ncx = $chunkX + $xx;
+                        $ncz = $chunkZ + $zz;
+                        $neighbor = $level->getChunk($ncx, $ncz, false);
+                        $prop = "chunk" . $i;
+                        $oldProp = "oldChunk" . $i;
+                        $this->{$prop} = $neighbor !== null ? $neighbor->fastSerialize() : null;
+                        $this->{$oldProp} = $neighbor !== null ? $neighbor->fastSerialize() : null;
+                }
+        }
 
-		$manager->setChunk($chunk->getX(), $chunk->getZ(), $chunk);
-		if(!$chunk->isGenerated()){
-			$generator->generateChunk($chunk->getX(), $chunk->getZ());
-			$chunk = $manager->getChunk($chunk->getX(), $chunk->getZ());
-			$chunk->setGenerated();
-		}
+        public function onRun(){
+                $manager = $this->getFromThreadStore("generation.level{$this->levelId}.manager");
+                $generator = $this->getFromThreadStore("generation.level{$this->levelId}.generator");
+                if(!($manager instanceof SimpleChunkManager) or !($generator instanceof Generator)){
+                        $this->state = false;
+                        return;
+                }
 
-		$generator->populateChunk($chunk->getX(), $chunk->getZ());
-		$chunk = $manager->getChunk($chunk->getX(), $chunk->getZ());
-		$chunk->setPopulated();
+                $chunk = Chunk::fastDeserialize($this->chunk);
+                if($chunk === null){
+                        $this->state = false;
+                        return;
+                }
 
-		$chunk->recalculateHeightMap();
-		$chunk->populateSkyLight();
-		$chunk->setLightPopulated();
+                $manager->setChunk($chunk->getX(), $chunk->getZ(), $chunk);
+                if(!$chunk->isGenerated()){
+                        $generator->generateChunk($chunk->getX(), $chunk->getZ());
+                        $chunk = $manager->getChunk($chunk->getX(), $chunk->getZ());
+                        $chunk->setGenerated();
+                }
 
-		$this->chunk = $chunk->fastSerialize();
+                for($i = 0; $i < 9; ++$i){
+                        if($i === 4){
+                                continue;
+                        }
+                        $prop = "chunk" . $i;
+                        $ser = $this->{$prop};
+                        if($ser === null){
+                                $xx = -1 + ($i % 3);
+                                $zz = -1 + (int) ($i / 3);
+                                $neighbor = new Chunk($chunk->getX() + $xx, $chunk->getZ() + $zz);
+                                $manager->setChunk($neighbor->getX(), $neighbor->getZ(), $neighbor);
+                                $generator->generateChunk($neighbor->getX(), $neighbor->getZ());
+                                $neighbor = $manager->getChunk($neighbor->getX(), $neighbor->getZ());
+                                $neighbor->setGenerated();
+                                $this->{$prop} = $neighbor->fastSerialize();
+                        }else{
+                                $neighbor = Chunk::fastDeserialize($ser);
+                                if($neighbor !== null){
+                                        $manager->setChunk($neighbor->getX(), $neighbor->getZ(), $neighbor);
+                                }
+                        }
+                }
 
-		$manager->cleanChunks();
-	}
+                $generator->populateChunk($chunk->getX(), $chunk->getZ());
+                $chunk = $manager->getChunk($chunk->getX(), $chunk->getZ());
+                $chunk->setPopulated();
+                $chunk->recalculateHeightMap();
+                $chunk->populateSkyLight();
+                $chunk->setLightPopulated();
+                $this->chunk = $chunk->fastSerialize();
 
-	public function onCompletion(Server $server){
-		$level = $server->getLevel($this->levelId);
-		if($level !== null){
-			if(!$this->state){
-				$level->registerGenerator();
-			}
+                for($i = 0; $i < 9; ++$i){
+                        if($i === 4){
+                                continue;
+                        }
+                        $prop = "chunk" . $i;
+                        $oldProp = "oldChunk" . $i;
+                        $xx = -1 + ($i % 3);
+                        $zz = -1 + (int) ($i / 3);
+                        $neighbor = $manager->getChunk($chunk->getX() + $xx, $chunk->getZ() + $zz);
+                        if($neighbor !== null){
+                                $this->{$prop} = $neighbor->fastSerialize();
+                        }
+                        $this->{$oldProp} = null;
+                }
 
-			$chunk = Chunk::fastDeserialize($this->chunk);
-			$level->generateChunkCallback($chunk->getX(), $chunk->getZ(), $this->state ? $chunk : null);
-		}
-	}
+                $manager->cleanChunks();
+        }
+
+        public function onCompletion(Server $server){
+                $level = $server->getLevel($this->levelId);
+                if($level !== null){
+                        if(!$this->state){
+                                $level->registerGenerator();
+                        }
+
+                        $chunk = Chunk::fastDeserialize($this->chunk);
+                        for($i = 0; $i < 9; ++$i){
+                                if($i === 4){
+                                        continue;
+                                }
+                                $prop = "chunk" . $i;
+                                $ser = $this->{$prop};
+                                if($ser === null){
+                                        continue;
+                                }
+                                $nchunk = Chunk::fastDeserialize($ser);
+                                if($nchunk !== null){
+                                        $level->generateChunkCallback($nchunk->getX(), $nchunk->getZ(), $nchunk);
+                                }
+                        }
+                        $level->generateChunkCallback($chunk->getX(), $chunk->getZ(), $this->state ? $chunk : null);
+                }
+        }
 }
