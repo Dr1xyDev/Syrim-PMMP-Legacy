@@ -10,8 +10,6 @@
  *  Author  : Dr1xy dev
  *  API     : 3.0.1 (modified)  |  Protocol : v113  |  MultiPHP : 7.3 / 7.4 / 8.0
  *
- *  Nota : Versiones anteriores existieron pero no fueron publicadas
- *         debido a motivos privados del autor.
  */
 
 namespace pocketmine;
