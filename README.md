@@ -53,6 +53,7 @@ Syrim es un núcleo basado en PocketMine-MP, diseñado específicamente para Min
 - 🎮 **Asistente de Primera Ejecución:** Elige idioma y configura tu servidor al iniciar
 - 🔍 **184 TODOs resueltos:** Todos los comentarios TODO/FIXME del código original han sido abordados ( casi resueltos )
 - 🪽 **IA de mobs simple:** Se implemento IA simple para casi todos los mobs
+- ⚙️ **Filtrado de Comandos:** se implemento filtrado de comandos al chat oara jugadores que no tienen permisos a ciertos comandos
 
 ### Generación de Mundo
 - 🌍 **Generador Vanilla de Nukkit 1.1.5:** Port completo del generador Normal, Flat y Nether
