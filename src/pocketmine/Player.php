@@ -709,6 +709,13 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
                 }
 
                 $this->sendSettings();
+
+                // Refresh the "/" command tab now that the player's permission set
+                // has changed. This makes commands appear/disappear instantly when
+                // /op or /deop is used without needing a relog.
+                if($this->isConnected()){
+                        $this->sendCommandData();
+                }
         }
 
         /**
@@ -792,21 +799,32 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
         public function sendCommandData(){
                 $data = [];
                 $count = 0;
-                foreach($this->server->getCommandMap()->getCommands() as $command){
-                        //if($this->hasPermission($command->getPermission()) or $command->getPermission() == null) {
-                                if (($cmdData = $command->generateCustomCommandData($this)) !== null){
-                                        ++$count;
-                                        $data[$command->getName()]["versions"][0] = $cmdData;
-                                }
-                        //}
+
+                $isOp = $this->isOp();
+
+                foreach($this->server->getCommandMap()->getCommands() as $name => $command){
+                        // Skip namespace-prefixed aliases (e.g. "pocketmine:gamemode")
+                        // so each command is sent only once, under its primary label.
+                        if(strpos($name, ":") !== false){
+                                continue;
+                        }
+
+                        // Permission filter.
+                        // OPs bypass this check and see ALL commands.
+                        // Non-OPs only see commands they pass testPermissionSilent() on,
+                        // which respects the full permission system (PurePerms, etc.)
+                        // WITHOUT sending any "no permission" message.
+                        if(!$isOp and !$command->testPermissionSilent($this)){
+                                continue;
+                        }
+
+                        if(($cmdData = $command->generateCustomCommandData($this)) !== null){
+                                ++$count;
+                                $data[$command->getName()]["versions"][0] = $cmdData;
+                        }
                 }
 
                 if($count > 0){
-                        // Syrim: la validación de estructura del JSON de comandos
-                        // se hace client-side - el cliente v113 valida cada entry
-                        // contra el schema de AvailableCommandsData. En el servidor
-                        // no se valida porque json_encode() ya produce JSON válido
-                        // y los campos son llenados por generateCustomCommandData().
                         $pk = new AvailableCommandsPacket();
                         $pk->commands = json_encode($data);
                         $this->dataPacket($pk);
