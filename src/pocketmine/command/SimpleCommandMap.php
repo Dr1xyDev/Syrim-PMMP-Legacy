@@ -409,6 +409,45 @@ class SimpleCommandMap implements CommandMap {
                 return $this->knownCommands;
         }
 
+        /**
+         * Returns only the commands that the given player is allowed to SEE in the
+         * "/" autocomplete tab-list. OPs see everything; non-OP players only see
+         * commands for which they pass testPermissionSilent(). Namespace-prefixed
+         * aliases (the "pocketmine:xxx" variants) are skipped so each command is
+         * only returned once under its primary label.
+         *
+         * This is used by Player::sendCommandData() to build the
+         * AvailableCommandsPacket that the client uses to populate the "/" tab list.
+         *
+         * @param Player $player
+         *
+         * @return Command[]
+         */
+        public function getCommandsFor(Player $player) : array{
+                // OPs see all commands, no filtering.
+                if($player->isOp()){
+                        return $this->knownCommands;
+                }
+
+                $visible = [];
+                foreach($this->knownCommands as $name => $command){
+                        // Skip namespace-prefixed aliases (e.g. "pocketmine:gamemode")
+                        // so the same command isn't returned twice.
+                        if(strpos($name, ":") !== false){
+                                continue;
+                        }
+
+                        // testPermissionSilent() returns true if the player has the
+                        // required permission node, WITHOUT sending any "no permission"
+                        // message. This is exactly what we want for the tab list.
+                        if($command->testPermissionSilent($player)){
+                                $visible[$name] = $command;
+                        }
+                }
+
+                return $visible;
+        }
+
 
         /**
          * @return void
