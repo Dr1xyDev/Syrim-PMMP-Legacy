@@ -54,6 +54,7 @@ Syrim es un núcleo basado en PocketMine-MP, diseñado específicamente para Min
 - 🔍 **184 TODOs resueltos:** Todos los comentarios TODO/FIXME del código original han sido abordados ( casi resueltos )
 - 🪽 **IA de mobs simple:** Se implemento IA simple para casi todos los mobs
 - ⚙️ **Filtrado de Comandos:** se implemento filtrado de comandos al chat oara jugadores que no tienen permisos a ciertos comandos
+- 🌟 **Items Nuevos y Bloques:** Se añadio Totem , Shulkers, etc , items vanilla al nucleo , y portal ya es posible construir e ir al ender
 
 ### Generación de Mundo
 - 🌍 **Generador Vanilla de Nukkit 1.1.5:** Port completo del generador Normal, Flat y Nether
