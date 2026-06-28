@@ -1,8 +1,6 @@
 <div align="center">
 
-░█▀▀░█░█░█▀▄░▀█▀░█▄█
-░▀▀█░░█░░█▀▄░░█░░█░█
-░▀▀▀░░▀░░▀░▀░▀▀▀░▀░▀
+<img src="https://github.com/Dr1xyDev/Syrim-PMMP-Legacy/blob/main/file.png?raw=true" alt="Syrim logo" />
 
 **Núcleo personalizado para Minecraft: Bedrock Edition v1.1.5 (protocolo v113)**
 
@@ -29,7 +27,7 @@
 
 ## 📖 Acerca de
 
-Syrim es un núcleo basado en PocketMine-MP, diseñado específicamente para Minecraft: Bedrock Edition v1.1.5 (protocolo v113). Incluye un generador de mundo vanilla porteado desde Nukkit 1.1.5, biomas personalizados, sistema de slots dinámicos, soporte multi-idioma y muchas mejoras de calidad para los administradores de servidores.
+Syrim es un núcleo basado en PocketMine-MP, diseñado específicamente para Minecraft: Bedrock Edition v1.1.5 (protocolo v113). Incluye un generador de mundo vanilla porteado desde Nukkit 1.1.5, biom[...] 
 
 > **Nota:** Versiones anteriores existieron pero no fueron publicadas debido a motivos privados.
 
